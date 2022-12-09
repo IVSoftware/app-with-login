@@ -16,7 +16,7 @@ namespace app_with_login
             base.OnVisibleChanged(e);
             if (Visible && !IsLoggedIn)
             {
-                // Don't block the visible event.
+                // Don't block the VisibleChanged event.
                 BeginInvoke(new Action(() =>
                 {
                     execLoginFlow();

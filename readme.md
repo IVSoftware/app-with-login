@@ -79,7 +79,4 @@ Disposing windows is important and failure to do so can cause the kind of exit h
         public string UserName => textBoxUid.Text;
     }
 
-[![login flow][1]][1]
-
-
-  [1]: https://i.stack.imgur.com/VpMuf.png
+![login flow][1](https://github.com/IVSoftware/app-with-login/blob/master/app-with-login/Screenshots/screenshot.png)
