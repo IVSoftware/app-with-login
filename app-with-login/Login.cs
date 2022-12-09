@@ -15,6 +15,7 @@ namespace app_with_login
             InitializeComponent();
             StartPosition = FormStartPosition.Manual;
             FormBorderStyle = FormBorderStyle.FixedToolWindow;
+            textBoxUid.Text = "Admin";
             textBoxUid.TextChanged += onOnyTextChanged;
             textBoxPswd.TextChanged += onOnyTextChanged;
             buttonLogin.Enabled = false;
