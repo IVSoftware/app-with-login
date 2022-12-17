@@ -70,8 +70,8 @@ Your [post](https://stackoverflow.com/q/74735590/5438626) states that your objec
         }
     }
 
-    ***
-    **Login form**
+***
+**Login form**
 
     public partial class LoginForm : Form
     {
