@@ -29,5 +29,14 @@ namespace app_with_login
             );
         }
         public string UserName => textBoxUid.Text;
+        protected override void OnVisibleChanged(EventArgs e)
+        {
+            base.OnVisibleChanged(e);
+            if (Visible)
+            {
+                textBoxPswd.Clear();
+                textBoxPswd.PlaceholderText = "********";
+            }
+        }
     }
 }

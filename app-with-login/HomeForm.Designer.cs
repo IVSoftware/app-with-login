@@ -29,19 +29,32 @@ namespace app_with_login
         /// </summary>
         private void InitializeComponent()
         {
+            this.buttonSignOut = new System.Windows.Forms.Button();
             this.SuspendLayout();
+            // 
+            // buttonSignOut
+            // 
+            this.buttonSignOut.Location = new System.Drawing.Point(22, 33);
+            this.buttonSignOut.Name = "buttonSignOut";
+            this.buttonSignOut.Size = new System.Drawing.Size(112, 34);
+            this.buttonSignOut.TabIndex = 0;
+            this.buttonSignOut.Text = "Sign Out";
+            this.buttonSignOut.UseVisualStyleBackColor = true;
             // 
             // HomeForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 25F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(478, 244);
+            this.Controls.Add(this.buttonSignOut);
             this.Name = "HomeForm";
             this.ResumeLayout(false);
 
         }
 
         #endregion
+
+        private System.Windows.Forms.Button buttonSignOut;
     }
 }
 

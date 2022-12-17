@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace app_with_login
@@ -8,50 +9,65 @@ namespace app_with_login
         public HomeForm()
         {
             InitializeComponent();
-            StartPosition = FormStartPosition.CenterScreen;
+            // Ordinarily we don't get the handle until
+            // window is shown. But we want it now.
+            _ = Handle;
+            // After creating handle, give it a short delay for things settle.
+            BeginInvoke(new Action(()=> execLoginFlow()));
+            // Ensure final disposal of login form.
+            Disposed += (sender, e) => _loginForm.Dispose();
+            buttonSignOut.Click += (sender, e) => IsLoggedIn = false;
         }
-        public bool IsLoggedIn { get; private set; }
-        protected override void OnVisibleChanged(EventArgs e)
+        private LoginForm _loginForm = new LoginForm();
+        protected override void SetVisibleCore(bool value) =>
+            base.SetVisibleCore(value && IsLoggedIn);
+
+        bool _isLoggedIn = false;
+        public bool IsLoggedIn
         {
-            base.OnVisibleChanged(e);
-            if (Visible && !IsLoggedIn)
+            get => _isLoggedIn;
+            set
             {
-                // Don't block the VisibleChanged event.
-                BeginInvoke(new Action(() =>
+                if (!Equals(_isLoggedIn, value))
                 {
-                    execLoginFlow();
-                }));
+                    _isLoggedIn = value;
+                    onIsLoggedInChanged();
+                }
             }
         }
+
+        private void onIsLoggedInChanged()
+        {
+            if (IsLoggedIn)
+            {
+                WindowState = FormWindowState.Maximized;
+                Text = $"Welcome {_loginForm.UserName}";
+                Visible = true;
+            }
+            else execLoginFlow();
+        }
+
         private void execLoginFlow()
         {
             Visible = false;
             while (!IsLoggedIn)
             {
-                using (var loginForm = new LoginForm())
+                _loginForm.StartPosition = FormStartPosition.CenterScreen;
+                if (DialogResult.Cancel == _loginForm.ShowDialog(this))
                 {
-                    loginForm.Size = Size;
-                    loginForm.Location = Location;
-
-                    if (DialogResult.Cancel == loginForm.ShowDialog(this))
+                    switch (MessageBox.Show(
+                        this,
+                        "Invalid Credentials",
+                        "Error",
+                        buttons: MessageBoxButtons.RetryCancel))
                     {
-                        switch (MessageBox.Show(
-                            this,
-                            "Invalid Credentials",
-                            "Error",
-                            buttons: MessageBoxButtons.RetryCancel))
-                        {
-                            case DialogResult.Cancel: Application.Exit(); return;
-                            case DialogResult.Retry: break;
-                        }
+                        case DialogResult.Cancel: Application.Exit(); return;
+                        case DialogResult.Retry: break;
                     }
-                    else
-                    {
-                        WindowState = FormWindowState.Maximized;
-                        IsLoggedIn = true;
-                        Text = $"Welcome {loginForm.UserName}";
-                        Visible = true;
-                    }
+                }
+                else
+                {
+                    IsLoggedIn = true;
                 }
             }
         }
