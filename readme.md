@@ -1,61 +1,77 @@
-Your [post](https://stackoverflow.com/q/74735590/5438626) states that your objective is to show the login form _first_, requiring user credentials _before showing the main form_. One way to achieve this is to force the creation of the main window handle but then prevent it from becoming visible by overriding `SetVisibleCore` until the user succeeds in logging in.  `LoginForm` will be superimposed on the rectangle it leaves behind. Exit the app if login is cancelled (or if user validation fails of course). With a valid login, the app proceeds with _HomeForm_ as the main application window as it should be.
+Your [post](https://stackoverflow.com/q/74735590/5438626) states that your objective is to show the login form _first_, requiring user credentials _before showing the main form_. One way to achieve this is to force the creation of the main window handle while also preventing it from becoming visible by overriding `SetVisibleCore` until the user succeeds in logging in.  Exit the app if login is cancelled (or if user validation fails of course). With a valid login, the app proceeds with _HomeForm_ as the main application window as it should be.
 
     public partial class HomeForm : Form
     {
         public HomeForm()
         {
             InitializeComponent();
-            StartPosition = FormStartPosition.CenterScreen;
+            // Ordinarily we don't get the handle until
+            // window is shown. But we want it now.
+            _ = Handle;
+            // After creating handle, give it a short delay for things settle.
+            BeginInvoke(new Action(()=> execLoginFlow()));
+            // Ensure final disposal of login form. Failure to properly dispose of window 
+            // handles is the leading cause of the kind of exit hang you describe.
+            Disposed += (sender, e) => _loginForm.Dispose();
+            buttonSignOut.Click += (sender, e) => IsLoggedIn = false;
         }
-        public bool IsLoggedIn { get; private set; }
-        protected override void OnVisibleChanged(EventArgs e)
+        private LoginForm _loginForm = new LoginForm();
+        protected override void SetVisibleCore(bool value) =>
+            base.SetVisibleCore(value && IsLoggedIn);
+
+        bool _isLoggedIn = false;
+        public bool IsLoggedIn
         {
-            base.OnVisibleChanged(e);
-            if (Visible && !IsLoggedIn)
+            get => _isLoggedIn;
+            set
             {
-                // Don't block the visible event.
-                BeginInvoke(new Action(() =>
+                if (!Equals(_isLoggedIn, value))
                 {
-                    execLoginFlow();
-                }));
+                    _isLoggedIn = value;
+                    onIsLoggedInChanged();
+                }
             }
         }
+
+        private void onIsLoggedInChanged()
+        {
+            if (IsLoggedIn)
+            {
+                WindowState = FormWindowState.Maximized;
+                Text = $"Welcome {_loginForm.UserName}";
+                Visible = true;
+            }
+            else execLoginFlow();
+        }
+
         private void execLoginFlow()
         {
             Visible = false;
             while (!IsLoggedIn)
             {
-                using (var loginForm = new LoginForm())
+                _loginForm.StartPosition = FormStartPosition.CenterScreen;
+                if (DialogResult.Cancel == _loginForm.ShowDialog(this))
                 {
-                    loginForm.Size = Size;
-                    loginForm.Location = Location;
-
-                    if (DialogResult.Cancel == loginForm.ShowDialog(this))
+                    switch (MessageBox.Show(
+                        this,
+                        "Invalid Credentials",
+                        "Error",
+                        buttons: MessageBoxButtons.RetryCancel))
                     {
-                        switch (MessageBox.Show(
-                            this,
-                            "Invalid Credentials",
-                            "Error",
-                            buttons: MessageBoxButtons.RetryCancel))
-                        {
-                            case DialogResult.Cancel: Application.Exit(); return;
-                            case DialogResult.Retry: break;
-                        }
+                        case DialogResult.Cancel: Application.Exit(); return;
+                        case DialogResult.Retry: break;
                     }
-                    else
-                    {
-                        WindowState = FormWindowState.Maximized;
-                        IsLoggedIn = true;
-                        Text = $"Welcome {loginForm.UserName}";
-                        Visible = true;
-                    }
+                }
+                else
+                {
+                    IsLoggedIn = true;
                 }
             }
         }
     }
 
-Disposing windows is important and failure to do so can cause the kind of exit hang you describe. For this reason, and "_because a form displayed as a dialog box is hidden instead of closed_" (per [Microsoft](https://learn.microsoft.com/en-us/dotnet/api/system.windows.forms.form.showdialog?view=windowsdesktop-7.0)) the `using` block ensures the popup window will properly dispose. This should help avoid any issues with exiting the app.
-
+    ***
+    **Login form**
 
     public partial class LoginForm : Form
     {
@@ -64,6 +80,7 @@ Disposing windows is important and failure to do so can cause the kind of exit h
             InitializeComponent();
             StartPosition = FormStartPosition.Manual;
             FormBorderStyle = FormBorderStyle.FixedToolWindow;
+            textBoxUid.Text = "Admin";
             textBoxUid.TextChanged += onOnyTextChanged;
             textBoxPswd.TextChanged += onOnyTextChanged;
             buttonLogin.Enabled = false;
@@ -77,6 +94,15 @@ Disposing windows is important and failure to do so can cause the kind of exit h
             );
         }
         public string UserName => textBoxUid.Text;
+        protected override void OnVisibleChanged(EventArgs e)
+        {
+            base.OnVisibleChanged(e);
+            if (Visible)
+            {
+                textBoxPswd.Clear();
+                textBoxPswd.PlaceholderText = "********";
+            }
+        }
     }
 
 ![login flow](https://github.com/IVSoftware/app-with-login/blob/master/app-with-login/Screenshots/screenshot.png?raw=true)
