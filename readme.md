@@ -105,5 +105,7 @@ Your [post](https://stackoverflow.com/q/74735590/5438626) states that your objec
         }
     }
 
-![login flow](https://github.com/IVSoftware/app-with-login/blob/master/app-with-login/Screenshots/screenshot.png?raw=true)
+[![login flow][1]][1]
 
+
+  [1]: https://i.stack.imgur.com/4XLKv.png
