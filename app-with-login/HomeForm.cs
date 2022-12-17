@@ -12,7 +12,7 @@ namespace app_with_login
             // Ordinarily we don't get the handle until
             // window is shown. But we want it now.
             _ = Handle;
-            // After creating handle, give it a short delay for things settle.
+            // Call BeginInvoke on the new handle so as not to block the CTor.
             BeginInvoke(new Action(()=> execLoginFlow()));
             // Ensure final disposal of login form.
             Disposed += (sender, e) => _loginForm.Dispose();
