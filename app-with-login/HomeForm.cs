@@ -14,7 +14,8 @@ namespace app_with_login
             _ = Handle;
             // Call BeginInvoke on the new handle so as not to block the CTor.
             BeginInvoke(new Action(()=> execLoginFlow()));
-            // Ensure final disposal of login form.
+            // Ensure final disposal of login form. Failure to properly dispose of window 
+            // handles is the leading cause of the kind of exit hang you describe.
             Disposed += (sender, e) => _loginForm.Dispose();
             buttonSignOut.Click += (sender, e) => IsLoggedIn = false;
         }
