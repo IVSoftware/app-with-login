@@ -8,10 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="devexpress.win.navigation" Version="22.1.6" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="Screenshots\" />
   </ItemGroup>
 
